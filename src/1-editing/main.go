@@ -45,6 +45,26 @@ func main() {
 	e := echo.New()
 	e.Use(middleware.Logger())
 
+	e.DELETE("/users/:id", func(c echo.Context) error {
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+
+		result, err := db.Exec("DELETE FROM users WHERE id = ?", id)
+
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+
+		rowsAffected, _ := result.RowsAffected()
+		if rowsAffected == 0 {
+			return echo.NewHTTPError(http.StatusNotFound, "not found")
+		}
+		// 204を返す
+		return c.NoContent(http.StatusNoContent)
+	})
+
 	e.POST("/users", func(c echo.Context) error {
 		// form経由の値を取得
 		name := c.FormValue("name")
@@ -121,6 +141,26 @@ func main() {
 
 		// &Userはnew(User)とほぼ同じで生成されたオブジェクトのポインタを返すがstructの中身を指定して生成できる
 		return c.JSON(http.StatusOK, &User{ID: id, Name: name, Age: age})
+	})
+
+	e.GET("/users/:id", func(c echo.Context) error {
+		// c.Paramでパラメータを取得
+		id, err := strconv.Atoi(c.Param("id"))
+
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+
+		// QueryRowで1レコードを取得
+		row := db.QueryRow("SELECT id,name,age FROM users WHERE id = ?", id)
+
+		var user User
+		// Scanで取得したレコードをUser{}にバインド
+		if err := row.Scan(&user.ID, &user.Name, &user.Age); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+
+		return c.JSON(http.StatusOK, user)
 	})
 
 	e.Start(":8080")
