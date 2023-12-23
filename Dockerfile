@@ -2,10 +2,10 @@ FROM golang:1.20
 
 WORKDIR /app
 
-COPY ./src/1-editing/go.mod ./src/1-editing/go.sum ./
+COPY ./src/todoapp/go.mod ./src/todoapp/go.sum ./
 
 RUN go mod download
 
-COPY ./src/1-editing ./
+COPY ./src/todoapp ./
 
 EXPOSE 8080
