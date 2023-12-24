@@ -33,7 +33,7 @@ func (t *taskController) Get(c echo.Context) error {
 	}
 	task, err := t.u.GetTask(id)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, nil)
+		return c.JSON(http.StatusInternalServerError, err)
 	}
 
 	// c.JSONを返しているがechoでerror型の値を返している
@@ -45,12 +45,12 @@ func (t *taskController) Create(c echo.Context) error {
 
 	// c.BindはJSONを構造体にバインドする
 	if err := c.Bind(&task); err != nil {
-		return c.JSON(http.StatusBadRequest, nil)
+		return c.JSON(http.StatusBadRequest, err)
 	}
 
 	createdID, err := t.u.CreateTask(task.Title)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, nil)
+		return c.JSON(http.StatusInternalServerError, err)
 	}
 
 	return c.JSON(http.StatusOK, createdID)

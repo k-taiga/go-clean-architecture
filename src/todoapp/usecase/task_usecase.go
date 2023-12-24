@@ -28,7 +28,6 @@ func (u *taskUseCase) CreateTask(title string) (int, error) {
 		return 0, err
 	}
 	id, err := u.r.Create(&task)
-	println(id)
 	return id, err
 }
 
