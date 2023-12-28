@@ -1,11 +1,14 @@
 package repository
 
-import "database/sql"
+import (
+	"database/sql"
+	"todoapp/model"
+)
 
 type TaskRepository interface {
-	Create(task *Task) (int, error)
-	Read(id int) (*Task, error)
-	Update(task *Task) error
+	Create(task *model.Task) (int, error)
+	Read(id int) (*model.Task, error)
+	Update(task *model.Task) error
 	Delete(id int) error
 }
 
@@ -15,33 +18,28 @@ type taskRepositoryImpl struct {
 	db *sql.DB
 }
 
-type Task struct {
-	ID    int    `json:"id"`
-	Title string `json:"title"`
-}
-
 // このpublicの関数で外部からインスタンス化できるようにする
 func NewTaskRepository(db *sql.DB) *taskRepositoryImpl {
 	// {db: db}で構造体の初期化を行いそのポインタを返す
 	return &taskRepositoryImpl{db: db}
 }
 
-func (r *taskRepositoryImpl) Create(task *Task) (int, error) {
+func (r *taskRepositoryImpl) Create(task *model.Task) (int, error) {
 	stmt := `INSERT INTO tasks (title) VALUES (?) RETURNING id`
 	// queryRowで実行してScanでtask.IDに値を入れる
 	err := r.db.QueryRow(stmt, task.Title).Scan(&task.ID)
 	return task.ID, err
 }
 
-func (r *taskRepositoryImpl) Read(id int) (*Task, error) {
+func (r *taskRepositoryImpl) Read(id int) (*model.Task, error) {
 	stmt := `SELECT id, title FROM tasks WHERE id = ?`
-	task := Task{}
+	task := model.Task{}
 	// queryRowで実行してScanでtask.IDとtask.Titleに値を入れる
 	err := r.db.QueryRow(stmt, id).Scan(&task.ID, &task.Title)
 	return &task, err
 }
 
-func (r *taskRepositoryImpl) Update(task *Task) error {
+func (r *taskRepositoryImpl) Update(task *model.Task) error {
 	stmt := `UPDATE tasks SET title = ? WHERE id = ?`
 	rows, err := r.db.Exec(stmt, task.Title, task.ID)
 	if err != nil {
